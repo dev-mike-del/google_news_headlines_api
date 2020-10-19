@@ -24,8 +24,8 @@ def headlines():
         cursor.close() 
         conn.close()
 
-@app.route('/headlines/<int:headline_id>')
-def student(headline_id):
+@app.route('/headline/<int:headline_id>')
+def headline(headline_id):
     try:
         conn = mysql.connect()
         cursor = conn.cursor(pymysql.cursors.DictCursor)
