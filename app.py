@@ -1,45 +1,46 @@
-import pymysql
 from flask import Flask, jsonify, request
 from flask_cors import CORS
+from flask_sqlalchemy import SQLAlchemy 
+
+from secret_variables import db_user, db_password, db_host, db_name
 
 app = Flask(__name__)
 CORS(app)
 
-from config import mysql
+uri = f'mysql+pymysql://{db_user}:{db_password}@{db_host}/{db_name}'
+app.config['SQLALCHEMY_DATABASE_URI'] = uri
+db = SQLAlchemy(app)
+
+headlines1 = db.Table('headlines', 
+    db.metadata, autoload=True, autoload_with=db.engine)
 
 @app.route('/headlines')
 def headlines():
     try:
-        conn = mysql.connect()
-        cursor = conn.cursor(pymysql.cursors.DictCursor)
-        cursor.execute("SELECT * FROM headlines")
-        rows = cursor.fetchall()
-        res = jsonify(rows)
-        res.status_code = 200
-
-        return res
+        results = db.session.query(headlines1).all()
+        json_results = jsonify(results)
+        json_results.status_code = 200
+        return json_results
     except Exception as e:
         print(e)
     finally:
-        cursor.close() 
-        conn.close()
+        db.session.close()
 
 @app.route('/headline/<int:headline_id>')
 def headline(headline_id):
+    print("You have entered the 'headline' function")
     try:
-        conn = mysql.connect()
-        cursor = conn.cursor(pymysql.cursors.DictCursor)
-        cursor.execute("SELECT * FROM headlines WHERE id=%s", headline_id)
-        row = cursor.fetchone()
-        res = jsonify(row)
-        res.status_code = 200
-        
-        return res
+        # results = db.session.query(headlines1).get(int(headline_id))
+        results = db.session.query(headlines1).filter(headline.id==headline_id)
+        print("results:")
+        print(results)
+        json_results = jsonify(results)
+        json_results.status_code = 200
+        return json_results
     except Exception as e:
         print(e)
     finally:
-        cursor.close() 
-        conn.close()
+        db.session.close()
 
 @app.errorhandler(404)
 def not_found(error=None):
