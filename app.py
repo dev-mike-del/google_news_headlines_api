@@ -1,6 +1,6 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
-from flask_sqlalchemy import SQLAlchemy 
+from flask_sqlalchemy import SQLAlchemy
 
 from secret_variables import db_user, db_password, db_host, db_name
 
@@ -30,15 +30,14 @@ def headlines():
 def headline(headline_id):
     print("You have entered the 'headline' function")
     try:
-        # results = db.session.query(headlines1).get(int(headline_id))
-        results = db.session.query(headlines1).filter(headline.id==headline_id)
-        print("results:")
-        print(results)
-        json_results = jsonify(results)
+        results =  db.session.execute(
+            headlines1.select().where(headlines1.columns.id == headline_id))
+        json_results = jsonify({'result': [dict(row) for row in results]})
         json_results.status_code = 200
         return json_results
     except Exception as e:
         print(e)
+        raise e
     finally:
         db.session.close()
 
